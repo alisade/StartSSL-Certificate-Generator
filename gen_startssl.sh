@@ -10,11 +10,12 @@
 
 source startssl.conf
 
-DOMAIN="$1"
+DOMAINS="$1"
+DOMAIN="$(echo $DOMAINS | cut -d, -f1)"
 
 [ ! -f  "$CERT" -o -z "$CERT" ] && { echo "PEM encoded StartAPI authentication certificate is required."; exit -1; }
 [ -z "$API_TOKEN" ] && { echo "StartAPI Token is required. You can set it in apitoken file."; exit -1; }
-[ -z "$DOMAIN" ] && { echo "Domain needs to be specified eg. server1.example.com."; exit -1; }
+[ -z "$DOMAIN" ] && { echo "Domain(s) is/are required eg. server1.example.com, comma delimited in case of multiple SANs per certificate."; exit -1; }
 
 rm -rf $DOMAIN
 mkdir $DOMAIN
@@ -22,7 +23,7 @@ mkdir $DOMAIN
 openssl req -nodes -newkey rsa:2048 -subj "/CN=$DOMAIN" -keyout $DOMAIN/$DOMAIN.key -out $DOMAIN/$DOMAIN.csr 2>/dev/null
 
 CSR=$(sed ':a;N;$!ba;s/\n/\\n/g' $DOMAIN/$DOMAIN.csr)
-RES=$(curl --silent -X POST --data-urlencode "RequestData={\"tokenID\":\"$API_TOKEN\",\"actionType\":\"ApplyCertificate\",\"certType\":\"DVSSL\",\"domains\":\"$DOMAIN\",\"CSR\":\"$CSR\"}" --cert $CERT $API_ENDPOINT)
+RES=$(curl --silent -X POST --data-urlencode "RequestData={\"tokenID\":\"$API_TOKEN\",\"actionType\":\"ApplyCertificate\",\"certType\":\"DVSSL\",\"domains\":\"$DOMAINS\",\"CSR\":\"$CSR\"}" --cert $CERT $API_ENDPOINT)
 
 STATUS=$(echo $RES | json status)
 MSG=$(echo $RES | json shortMsg)
