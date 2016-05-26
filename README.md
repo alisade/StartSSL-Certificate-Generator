@@ -4,9 +4,9 @@ verify your domain before using this script.
 Also you need to create a StartSSLAPI certificate and API token.
 docs: [https://startssl.com/StartAPI/Docs] (https://startssl.com/StartAPI/Docs)
 
-requires coreutils for base64 
+requires coreutils for base64 and curl
 
-    sudo apt-get -y install coreutils
+    sudo apt-get -y install coreutils curl
 
 and node json tool
 
