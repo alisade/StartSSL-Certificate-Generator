@@ -13,13 +13,13 @@ source startssl.conf
 DOMAIN="$1"
 
 [ ! -f  "$CERT" -o -z "$CERT" ] && { echo "PEM encoded StartAPI authentication certificate is required."; exit -1; }
-[ -z "$DOMAIN" ] && { echo "Domain needs to be specified eg. server1.example.com"; exit -1; }
-[ -z "$API_TOKEN" ] && { echo "StartAPI Token is required"; exit -1; }
+[ -z "$API_TOKEN" ] && { echo "StartAPI Token is required. You can set it in apitoken file."; exit -1; }
+[ -z "$DOMAIN" ] && { echo "Domain needs to be specified eg. server1.example.com."; exit -1; }
 
 rm -rf $DOMAIN
 mkdir $DOMAIN
 # Generate key and CSR
-openssl req -nodes -newkey rsa:2048 -subj "/CN=$DOMAIN" -keyout $DOMAIN/$DOMAIN.key -out $DOMAIN/$DOMAIN.csr
+openssl req -nodes -newkey rsa:2048 -subj "/CN=$DOMAIN" -keyout $DOMAIN/$DOMAIN.key -out $DOMAIN/$DOMAIN.csr 2>/dev/null
 
 CSR=$(sed ':a;N;$!ba;s/\n/\\n/g' $DOMAIN/$DOMAIN.csr)
 RES=$(curl --silent -X POST --data-urlencode "RequestData={\"tokenID\":\"$API_TOKEN\",\"actionType\":\"ApplyCertificate\",\"certType\":\"DVSSL\",\"domains\":\"$DOMAIN\",\"CSR\":\"$CSR\"}" --cert $CERT $API_ENDPOINT)
@@ -40,4 +40,4 @@ echo $CERT_B64 | base64 -d  > $DOMAIN/${DOMAIN}_combined.crt
 echo >> $DOMAIN/${DOMAIN}_combined.crt
 echo $INTER_CERT_B64 | base64 -d >> $DOMAIN/${DOMAIN}_combined.crt
 echo $INTER_CERT_B64 | base64 -d > $DOMAIN/startssl_cert_chain.crt
-echo "Done, certs are in $(readlink -f $DOMAIN)" 
+echo "Done, certificate are in $(readlink -f $DOMAIN)" 
